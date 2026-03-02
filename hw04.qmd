@@ -35,8 +35,6 @@ parlgov_party <- read_excel("parlgov.xlsx", sheet = "party")
 
 Add `library()` calls for any additional packages you use.
 
----
-
 # Exercise 1 -- Import and Explore
 
 ## Inspect the Data
@@ -75,7 +73,6 @@ How many rows remain?
 
 *Your answer here.*
 
----
 
 # Exercise 2 -- Filter and Select
 
@@ -103,7 +100,7 @@ Then keep only the columns `country_name`, `election_date`, `party_name_english`
 
 ```{r}
 recent_we <- parl |>
-  mutate(year = ___) |>    # extract year
+  mutate(year = ___) |> # extract year
   filter(
     country_name %in% c(___),
     year >= ___
@@ -117,7 +114,6 @@ Write one sentence confirming the result looks as expected.
 
 *Your answer here.*
 
----
 
 # Exercise 3 -- Mutate and Compute New Variables
 
@@ -158,8 +154,8 @@ parl |>
   filter(n() >= 50) |>
   summarise(
     mean_disprop = round(mean(disproportionality), 2),
-    n            = n(),
-    .groups      = "drop"
+    n = n(),
+    .groups = "drop"
   ) |>
   arrange(desc(mean_disprop))
 ```
@@ -167,8 +163,6 @@ parl |>
 Which countries show the largest average disproportionality? Can you explain why based on what you know about their electoral systems? Write two to three sentences.
 
 *Your answer here.*
-
----
 
 # Exercise 4 -- Summarise and Group
 
@@ -184,8 +178,8 @@ parl |>
   group_by(___) |>
   summarise(
     mean_lr = round(mean(left_right, na.rm = TRUE), 2),
-    sd_lr   = round(sd(left_right, na.rm = TRUE), 2),
-    n       = n(),
+    sd_lr = round(sd(left_right, na.rm = TRUE), 2),
+    n = n(),
     .groups = "drop"
   ) |>
   filter(n >= 30) |>
@@ -209,7 +203,7 @@ This tells you whether dominant parties have become stronger or weaker over time
 ```{r}
 parl |>
   mutate(
-    year   = as.numeric(str_sub(election_date, 1, 4)),
+    year = as.numeric(str_sub(election_date, 1, 4)),
     decade = ___
   ) |>
   group_by(country_name, election_date, decade) |>
@@ -217,8 +211,8 @@ parl |>
   group_by(___) |>
   summarise(
     mean_max_vote = round(mean(max_vote, na.rm = TRUE), 1),
-    n_elections   = n(),
-    .groups       = "drop"
+    n_elections = n(),
+    .groups = "drop"
   ) |>
   filter(n_elections >= 5) |>
   arrange(decade)
@@ -227,8 +221,6 @@ parl |>
 Write two sentences describing the trend. Is there evidence of increasing or decreasing party system fragmentation over time?
 
 *Your answer here.*
-
----
 
 # Exercise 5 -- A Full Pipeline
 
@@ -259,10 +251,21 @@ Now use `parl_with_family` to complete the pipeline:
 parl_with_family |>
   mutate(year = as.numeric(str_sub(election_date, 1, 4))) |>
   filter(
-    country_name %in% c("France", "Germany", "Italy", "Spain",
-                        "Netherlands", "Belgium", "Austria",
-                        "Sweden", "Denmark", "Norway",
-                        "Finland", "Portugal"),
+    country_name %in%
+      c(
+        "France",
+        "Germany",
+        "Italy",
+        "Spain",
+        "Netherlands",
+        "Belgium",
+        "Austria",
+        "Sweden",
+        "Denmark",
+        "Norway",
+        "Finland",
+        "Portugal"
+      ),
     year >= 1990,
     !is.na(seats),
     !is.na(family_name)
@@ -270,8 +273,8 @@ parl_with_family |>
   group_by(___) |>
   summarise(
     total_seats = sum(seats, na.rm = TRUE),
-    n_parties   = n_distinct(party_name_english),
-    .groups     = "drop"
+    n_parties = n_distinct(party_name_english),
+    .groups = "drop"
   ) |>
   arrange(desc(total_seats))
 ```
@@ -280,7 +283,6 @@ Write two to three sentences interpreting the result. Does the ranking reflect y
 
 *Your answer here.*
 
----
 
 # Exercise 6 -- A Labelled Figure
 
@@ -314,7 +316,6 @@ Write a paragraph beneath the figure (at least three sentences) interpreting wha
 
 *Your interpretation here.*
 
----
 
 # Exercise 7 -- Reflection
 
