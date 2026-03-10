@@ -1,0 +1,298 @@
+---
+title: "Homework 04 -- Solution"
+subtitle: "QMIR 2026"
+author: "Tristan Muno"
+date: last-modified
+date-format: MMMM D, YYYY
+format:
+  pdf:
+    toc: true
+    number-sections: true
+    papersize: a4
+    fontsize: 12pt
+execute:
+  echo: true
+  eval: true
+  warning: false
+  message: false
+  error: false
+---
+
+# Setup
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+parlgov_election <- read_excel("parlgov.xlsx", sheet = "election")
+parlgov_party <- read_excel("parlgov.xlsx", sheet = "party")
+```
+
+
+# Exercise 1 -- Import and Explore
+
+## Inspect the Data
+
+```{r}
+glimpse(parlgov_election)
+```
+
+```{r}
+head(parlgov_election)
+```
+
+```{r}
+summary(parlgov_election)
+```
+
+The election sheet has 9,016 rows and 16 columns. Each row represents one party's result in one election -- so a single election with five parties competing produces five rows. Most columns are numeric or character; `election_date` is stored as a character string (format `"YYYY-MM-DD"`), and several columns such as `left_right` contain missing values (`NA`).
+
+```{r}
+# Distinct countries
+parlgov_election |> distinct(country_name)
+```
+
+```{r}
+# Observations by election type
+parlgov_election |> count(election_type)
+```
+
+There are 37 distinct countries in the dataset. Of the 9,016 rows, 7,314 (about 81%) come from national parliament elections and 1,702 from European Parliament elections. National elections are more numerous because they occur more frequently and go further back in time.
+
+## Subset to Parliament Elections
+
+```{r}
+parl <- parlgov_election |>
+  filter(election_type == "parliament")
+
+nrow(parl)
+```
+
+After filtering to parliamentary elections only, 7,314 rows remain. This matches the count from the `count()` output above.
+
+
+# Exercise 2 -- Filter and Select
+
+## German Elections
+
+```{r}
+germany <- parl |>
+  filter(country_name == "Germany")
+
+germany |> distinct(election_date)
+```
+
+The ParlGov data contains results from 29 German national parliamentary elections, ranging from January 1919 to the most recent election in the dataset.
+
+## Recent Western Europe
+
+```{r}
+recent_we <- parl |>
+  mutate(year = as.numeric(str_sub(election_date, 1, 4))) |>
+  filter(
+    country_name %in% c("France", "Germany", "Netherlands", "Sweden"),
+    year >= 2000
+  ) |>
+  select(
+    country_name,
+    election_date,
+    party_name_english,
+    vote_share,
+    seats,
+    seats_total,
+    left_right
+  )
+
+recent_we
+```
+
+The result contains 269 rows, covering national parliamentary elections in France, Germany, the Netherlands, and Sweden from 2000 onwards. Each row is one party result in one election, which looks correct: the four countries have had multiple elections over this period, each with several parties.
+
+
+# Exercise 3 -- Mutate and Compute New Variables
+
+## Seat Share
+
+```{r}
+parl <- parl |>
+  mutate(seat_share = seats / seats_total * 100)
+```
+
+```{r}
+parl |>
+  filter(!is.na(seat_share)) |>
+  arrange(desc(seat_share)) |>
+  select(country_name, election_date, party_name_english, seat_share) |>
+  slice_head(n = 5)
+```
+
+The five highest single-election seat shares all come from countries with majoritarian or first-past-the-post electoral systems -- Canada, the United Kingdom, and Greece. In these systems, a party can win a large majority of seats with a vote share in the low-to-mid fifties. This illustrates the disproportionality that majoritarian systems produce, which we examine directly in the next task.
+
+## Vote--Seat Disproportionality
+
+```{r}
+parl |>
+  mutate(disproportionality = seat_share - vote_share) |>
+  filter(!is.na(disproportionality)) |>
+  group_by(country_name) |>
+  filter(n() >= 50) |>
+  summarise(
+    mean_disprop = round(mean(disproportionality), 2),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_disprop))
+```
+
+The countries with the highest average disproportionality -- Bulgaria, New Zealand (historically), Portugal, Greece -- are or were predominantly majoritarian or mixed systems. In these cases, winning parties tend to receive seat bonuses: their seat share systematically exceeds their vote share. New Zealand's position near the top reflects its pre-1996 first-past-the-post system; after switching to mixed-member proportional representation the disproportionality dropped substantially, though the historical data still pulls the average up. Countries with low or negative mean disproportionality tend to use proportional representation systems, where seat shares track vote shares more closely.
+
+# Exercise 4 -- Summarise and Group
+
+## Mean Left-Right Score by Country
+
+```{r}
+parl |>
+  filter(!is.na(left_right)) |>
+  group_by(country_name) |>
+  summarise(
+    mean_lr = round(mean(left_right, na.rm = TRUE), 2),
+    sd_lr = round(sd(left_right, na.rm = TRUE), 2),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  filter(n >= 30) |>
+  arrange(mean_lr)
+```
+
+The variation in mean left-right scores across countries partly reflects which parties have historically competed successfully in each system. Countries like Portugal and Spain -- which transitioned to democracy in the mid-1970s after authoritarian regimes -- show lower mean left-right scores, consistent with the relative strength of left and centre-left parties in their post-transition party systems. The standard deviation column is arguably more substantively interesting: countries with high `sd_lr` have wider ideological spread across their competing parties, a basic indicator of party system polarisation.
+
+## Electoral Volatility Over Time
+
+```{r}
+parl |>
+  mutate(
+    year = as.numeric(str_sub(election_date, 1, 4)),
+    decade = (year %/% 10) * 10
+  ) |>
+  group_by(country_name, election_date, decade) |>
+  summarise(max_vote = max(vote_share, na.rm = TRUE), .groups = "drop") |>
+  group_by(decade) |>
+  summarise(
+    mean_max_vote = round(mean(max_vote, na.rm = TRUE), 1),
+    n_elections = n(),
+    .groups = "drop"
+  ) |>
+  filter(n_elections >= 5) |>
+  arrange(decade)
+```
+
+The mean vote share of the largest party per election has declined steadily from around 45% in the 1900s to about 31% in the 2020s. This is consistent with the comparative politics literature on party system fragmentation: traditional mass parties have lost their dominance, new parties (particularly on the right and among Greens) have entered and split the vote, and voters have become less attached to established parties. The decline is not monotone -- there is a slight uptick in the 1940s--1960s -- but the long-run trend toward more fragmented electoral competition is clear.
+
+# Exercise 5 -- A Full Pipeline
+
+First, join party family information into the election data:
+
+```{r}
+parl_with_family <- parl |>
+  left_join(
+    parlgov_party |> select(party_id, family_name),
+    by = "party_id"
+  )
+```
+
+Now the full pipeline:
+
+```{r}
+parl_with_family |>
+  mutate(year = as.numeric(str_sub(election_date, 1, 4))) |>
+  filter(
+    country_name %in%
+      c(
+        "France",
+        "Germany",
+        "Italy",
+        "Spain",
+        "Netherlands",
+        "Belgium",
+        "Austria",
+        "Sweden",
+        "Denmark",
+        "Norway",
+        "Finland",
+        "Portugal"
+      ),
+    year >= 1990,
+    !is.na(seats),
+    !is.na(family_name)
+  ) |>
+  group_by(family_name) |>
+  summarise(
+    total_seats = sum(seats, na.rm = TRUE),
+    n_parties = n_distinct(party_name_english),
+    .groups = "drop"
+  ) |>
+  arrange(desc(total_seats))
+```
+
+Social democratic parties have accumulated by far the most seats in Western European parliaments since 1990, followed by Conservatives and Christian democrats. This broadly matches expectations: centre-left and centre-right parties have historically dominated Western European legislatures, even as their combined seat share has eroded with the rise of Green, populist right, and other challenger parties. The large number of distinct parties within the Conservative and Liberal families reflects the cross-national diversity of party labelling -- parties that share an ideological family are grouped together regardless of their national names.
+
+# Exercise 6 -- A Labelled Figure
+
+This figure shows the mean vote share of Green and Ecologist parties in national parliamentary elections across Western European countries since 2000. Only countries where the Green family won at least one seat in at least one election are included.
+
+```{r}
+#| label: fig-greens
+#| fig-cap: "Mean vote share of Green/Ecologist parties in Western Europe, 2000--present"
+#| fig-height: 4.5
+
+parl_with_family |>
+  mutate(year = as.numeric(str_sub(election_date, 1, 4))) |>
+  filter(
+    family_name == "Green/Ecologist",
+    year >= 2000,
+    country_name %in%
+      c(
+        "France",
+        "Germany",
+        "Italy",
+        "Spain",
+        "Netherlands",
+        "Belgium",
+        "Austria",
+        "Sweden",
+        "Denmark",
+        "Norway",
+        "Finland",
+        "Portugal",
+        "Switzerland",
+        "Ireland",
+        "Luxembourg"
+      )
+  ) |>
+  group_by(country_name) |>
+  summarise(
+    mean_vote = mean(vote_share, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  filter(n >= 2) |>
+  mutate(country_name = fct_reorder(country_name, mean_vote)) |>
+  ggplot(aes(x = mean_vote, y = country_name)) +
+  geom_col(fill = "#4a7c59") +
+  geom_text(
+    aes(label = paste0(round(mean_vote, 1), "%")),
+    hjust = -0.15,
+    size = 3
+  ) +
+  scale_x_continuous(limits = c(0, 18), expand = c(0, 0)) +
+  theme_bw() +
+  labs(
+    x = "Mean Vote Share (%)",
+    y = NULL
+  )
+```
+
+@fig-greens reveals substantial cross-national variation in Green party support across Western Europe since 2000. Luxembourg and Switzerland stand out as the strongest performers, with mean vote shares above 10%, reflecting both their proportional electoral systems and political cultures that have been receptive to post-materialist politics for several decades. Germany's Greens, among the oldest and most institutionalised Green parties in Europe, also score highly. At the lower end, France and Portugal show comparatively modest Green performance -- in France's case, partly an artefact of the two-round majoritarian system that structurally disadvantages smaller parties. One limitation of this visualisation is that it averages across all elections since 2000, masking the strong upward trend in Green support that most countries experienced in the late 2010s following increased salience of climate change as a political issue.
+
+# Exercise 7 -- Reflection
+
