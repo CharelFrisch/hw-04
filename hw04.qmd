@@ -1,13 +1,13 @@
 ---
-title: ""
+title: "Homework Week 4"
 subtitle: "QMIR 2026 -- Homework 04"
-author: ""
+author: "Charel Frisch"
 date: last-modified
 date-format: MMMM D, YYYY
 format:
   pdf:
     toc: true
-    number-sections: true
+    number-sections: false
     papersize: a4
     fontsize: 12pt
 execute:
@@ -167,7 +167,7 @@ Create a variable `disproportionality` defined as `seat_share - vote_share`. Pos
 Then compute the mean disproportionality **by country**, keeping only countries with at least 50 observations (use `filter(n() >= 50)` inside a `group_by()` chain). Sort by mean disproportionality descending.
 
 ```{r}
-parl <- parl |> 
+parl |> 
   mutate(disproportionality = seat_share - vote_share) |>
   filter(!is.na(disproportionality)) |>
   group_by(country_name) |>
@@ -292,7 +292,7 @@ parl_with_family |>
     !is.na(seats),
     !is.na(family_name)
   ) |>
-  group_by(___) |>
+  group_by(family_name) |>
   summarise(
     total_seats = sum(seats, na.rm = TRUE),
     n_parties = n_distinct(party_name_english),
@@ -303,7 +303,7 @@ parl_with_family |>
 
 Write two to three sentences interpreting the result. Does the ranking reflect your expectations about Western European politics since 1990?
 
-*Your answer here.*
+*At first I was bit surprised because conservatie parties won considerably more seats than christian democratic parties. However this should be correct because most countries lost their traditional big christian democratic parties over time. Social democratic parties winning the most seats is very much expected considering their dominace in Nordic and Iberian countries. Additionaly most of the social democratic parties survived their christian democratic counterparts*
 
 
 # Exercise 6 -- A Labelled Figure
