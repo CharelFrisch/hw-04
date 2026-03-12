@@ -327,16 +327,60 @@ Below are three suggested starting points if you need inspiration. You are not r
 **Option C -- Left-right distribution by party family:** Use `geom_boxplot()` or `geom_violin()` to show the distribution of `left_right` scores across party families. This gives a visual summary of how well the family labels capture ideological position.
 
 ```{r}
-#| label: fig-
-#| fig-cap: ""
+#| label: fig-Voteshare
+#| fig-cap: "Mean vote share of European party families since the year 2000"
+#| fig-height: 5
+
 
 # Your ggplot code here
 
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(scales)
+
+parl_with_family |>
+  mutate(
+    year = as.numeric(str_sub(election_date, 1, 4)),
+    family_name = factor(
+      family_name,
+      levels = c(
+        "Communist/Socialist",
+        "Green/Ecologist",
+        "Social democracy",
+        "Agrarian",
+        "Liberal",
+        "Christian democracy",
+        "Conservative",
+        "Right-wing"
+      )
+    )
+  ) |>
+  filter(
+    year >= 2000,
+    !family_name %in% c("to be coded", "Special issue", "no family")
+  ) |>
+  group_by(year, family_name) |>
+  summarise(vote = mean(vote_share, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = year, y = vote, fill = family_name)) +
+  geom_area(position = "fill") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    x = "Year",
+    y = "Vote Share (%)",
+    fill = "Party Family"
+  ) +
+  theme_minimal()
+
+
+# I want to clarify that the code for this plot is NOT from myself, I got from "https://www.data-to-viz.com" and then I used ChatGPT to complete it because I was struggling to get "Vote share" in Percent
+
 ```
+
 
 Write a paragraph beneath the figure (at least three sentences) interpreting what it shows. Reference the figure using `@fig-yourlabel`. Explain the pattern, note anything surprising, and consider one possible limitation of the visualisation.
 
-*Your interpretation here.*
+*@fig-Voteshare shows the political evolution of Europe. We can clearly see that traditional conservative, liberal and social-democratic parties lost quite a big amount of their vote share to smaller party families like right-wing or green parties. Furthermore, one can also see that the vote share of left parties in total massively shrunk from over 35% to under 25%. We can also see that this might correlate with the rise of right-wing parties which previous work in political science has already shown. *
 
 
 # Exercise 7 -- Reflection
@@ -349,4 +393,4 @@ Add a short reflection at the end of your document. Answer the following in thre
 
 Be honest -- this helps improve the course.
 
-*Your reflection here.*
+*.*
