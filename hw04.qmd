@@ -44,6 +44,15 @@ Use `glimpse()`, `head()`, and `summary()` to get an overview of `parlgov_electi
 ```{r}
 # Your exploration code here
 
+glimpse(parlgov_election)
+
+head(parlgov_election)
+
+summary(parlgov_election)
+
+parlgov_election |> distinct(country_name)
+
+parlgov_election |> count(election_type)
 ```
 
 **Questions -- answer in prose beneath this line:**
@@ -53,7 +62,7 @@ Use `glimpse()`, `head()`, and `summary()` to get an overview of `parlgov_electi
 - How many distinct countries are in the dataset? Use `distinct()`.
 - Use `count()` to find out how many observations belong to parliamentary elections vs. European Parliament elections. Which type is more common?
 
-*Your answers here.*
+*The election sheet has 9,016 rows and 16 columns where as one column represent one variable and one row reprents basically one party and its respective results and information. There are 37 distinct countries in the dataset, 1702 observations belong to the EP-election and 7314 observations belong to Parliament elections. Therefore, parliamentary elections are more common*
 
 ## Subset to Parliament Elections
 
@@ -61,7 +70,7 @@ For the rest of the homework (unless noted otherwise), work only with **national
 
 ```{r}
 parl <- parlgov_election |>
-  filter(___)
+  filter(election_type == "parliament")
 ```
 
 How many rows remain?
@@ -69,9 +78,11 @@ How many rows remain?
 ```{r}
 # Your check here
 
+glimpse(parl)
+
 ```
 
-*Your answer here.*
+*As expected, only 7314 rows remain. (I think glimpse() was a bit superfluous here because I could've just looked in the running session under DATA)*
 
 
 # Exercise 2 -- Filter and Select
@@ -85,6 +96,8 @@ germany <- parl |>
   filter(___)
 
 # How many elections?
+
+glimpse(parl)
 
 ```
 
