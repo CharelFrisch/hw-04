@@ -93,15 +93,16 @@ Create an object called `germany` containing all parliamentary election results 
 
 ```{r}
 germany <- parl |>
-  filter(___)
+  filter(country_name == "Germany")
 
 # How many elections?
 
-glimpse(parl)
+germany |> 
+  distinct(election_date)
 
 ```
 
-*Your answer here: how many elections for Germany are in the data?*
+*There are 29 elections covered in the data set*
 
 ## Recent Western Europe
 
@@ -113,19 +114,25 @@ Then keep only the columns `country_name`, `election_date`, `party_name_english`
 
 ```{r}
 recent_we <- parl |>
-  mutate(year = ___) |> # extract year
+  mutate(year = as.numeric(stringr::str_sub(election_date, 1, 4))) |> # extract year
   filter(
-    country_name %in% c(___),
-    year >= ___
+    country_name %in% c("France", "Germany", "Netherlands", "Sweden"),
+    year >= 2000
   ) |>
-  select(___)
+  select(country_name,
+election_date,
+party_name_english,
+vote_share,
+seats,
+seats_total,
+left_right)
 
 recent_we
 ```
 
 Write one sentence confirming the result looks as expected.
 
-*Your answer here.*
+*The new set contains 269 rows from elections since the years 2000. Every row reprents a party election result, so 269 rows seems to be about correct considering it is 4 countries in total.*
 
 
 # Exercise 3 -- Mutate and Compute New Variables
