@@ -143,7 +143,7 @@ In `parl`, create a new variable `seat_share` that expresses the share of seats 
 
 ```{r}
 parl <- parl |>
-  mutate(seat_share = ___)
+  mutate(seat_share = seats / seats_total * 100)
 ```
 
 Now use `filter()` and `arrange()` to find the five parties with the highest single-election seat share in the entire dataset. What do they have in common?
@@ -151,12 +151,12 @@ Now use `filter()` and `arrange()` to find the five parties with the highest sin
 ```{r}
 parl |>
   filter(!is.na(seat_share)) |>
-  arrange(___) |>
+  arrange(desc(seat_share)) |>
   select(country_name, election_date, party_name_english, seat_share) |>
   slice_head(n = 5)
 ```
 
-*Your answer here.*
+*I am not sure if I am supposed to use a command here but I know that all of these countries use some form of the first-past-the-poste election systeme (Westminster, etc.) .*
 
 ## Vote--Seat Disproportionality
 
@@ -167,8 +167,8 @@ Create a variable `disproportionality` defined as `seat_share - vote_share`. Pos
 Then compute the mean disproportionality **by country**, keeping only countries with at least 50 observations (use `filter(n() >= 50)` inside a `group_by()` chain). Sort by mean disproportionality descending.
 
 ```{r}
-parl |>
-  mutate(disproportionality = ___) |>
+disproportionality <- parl|>
+  mutate(disproportionality = seat_share - vote_share) |>
   filter(!is.na(disproportionality)) |>
   group_by(country_name) |>
   filter(n() >= 50) |>
@@ -178,11 +178,12 @@ parl |>
     .groups = "drop"
   ) |>
   arrange(desc(mean_disprop))
+
 ```
 
 Which countries show the largest average disproportionality? Can you explain why based on what you know about their electoral systems? Write two to three sentences.
 
-*Your answer here.*
+*Funnily enough, this was the hardest part of the exercise. The countries with the largest disproportionalities are Bulgaria, New Zealand, Portugal, Greece and Latvia. NZ, Portugal and Greece are quite easy to explain because until the 1990s NZ used the Westminster system and Greece has some form of FPTP until today. Sadly, I am not that much into Bulgarian and Latvian Politics so ... I looked it up and apparently Bulgaria used FPTP for 2 elections but I couldn't find anything so I gave up after 20 minutes. If you know why, please let me know because now I am really interested! :( *
 
 # Exercise 4 -- Summarise and Group
 
