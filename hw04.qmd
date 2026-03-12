@@ -167,7 +167,7 @@ Create a variable `disproportionality` defined as `seat_share - vote_share`. Pos
 Then compute the mean disproportionality **by country**, keeping only countries with at least 50 observations (use `filter(n() >= 50)` inside a `group_by()` chain). Sort by mean disproportionality descending.
 
 ```{r}
-disproportionality <- parl|>
+parl <- parl |> 
   mutate(disproportionality = seat_share - vote_share) |>
   filter(!is.na(disproportionality)) |>
   group_by(country_name) |>
@@ -196,7 +196,7 @@ The `parl` (election) object also contains a `left_right` variable at the party-
 ```{r}
 parl |>
   filter(!is.na(left_right)) |>
-  group_by(___) |>
+  group_by(country_name) |>
   summarise(
     mean_lr = round(mean(left_right, na.rm = TRUE), 2),
     sd_lr = round(sd(left_right, na.rm = TRUE), 2),
@@ -204,12 +204,12 @@ parl |>
     .groups = "drop"
   ) |>
   filter(n >= 30) |>
-  arrange(___)
+  arrange(mean_lr)
 ```
 
 Write one sentence interpreting the variation in mean left-right scores across countries. Is the pattern what you expected?
 
-*Your answer here.*
+*The pattern isn't at all what I expected except for maybe Spain, Portugal and Norway which are well-known to be left-leaning... but Japan and Luxembourg??? Two countries that have in common that they have been ruled for 70 years straight by conservative parties, that was really surprising.*
 
 ## Electoral Volatility Over Time
 
@@ -225,11 +225,11 @@ This tells you whether dominant parties have become stronger or weaker over time
 parl |>
   mutate(
     year = as.numeric(str_sub(election_date, 1, 4)),
-    decade = ___
+    decade = (year %/% 10) * 10
   ) |>
   group_by(country_name, election_date, decade) |>
   summarise(max_vote = max(vote_share, na.rm = TRUE), .groups = "drop") |>
-  group_by(___) |>
+  group_by(decade) |>
   summarise(
     mean_max_vote = round(mean(max_vote, na.rm = TRUE), 1),
     n_elections = n(),
@@ -239,9 +239,10 @@ parl |>
   arrange(decade)
 ```
 
+
 Write two sentences describing the trend. Is there evidence of increasing or decreasing party system fragmentation over time?
 
-*Your answer here.*
+*If we look at the result, there is definetly evidence for an increase in the fragmentation of the party system which is coherent with our observations of modern parliaments. Until the 1980s, Germany had only 3 parties in Parliament, nowadays there are 5. In the Netherlands, it is even more extreme with up to 17 parties.*
 
 # Exercise 5 -- A Full Pipeline
 
