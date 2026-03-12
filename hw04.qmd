@@ -373,7 +373,7 @@ parl_with_family |>
   theme_minimal()
 
 
-# I want to clarify that the code for this plot is NOT from myself, I got from "https://www.data-to-viz.com" and then I used ChatGPT to complete it because I was struggling to get "Vote share" in Percent
+# I want to clarify that the code for this plot is NOT from myself, I got from "https://www.data-to-viz.com" and then I used ChatGPT to correct it because I was struggling to get "Vote share" in Percent and the leveled parties on the plot. Everytime I tried it, I only got loads of error messages.
 
 ```
 
